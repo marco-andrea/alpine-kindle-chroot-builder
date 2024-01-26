@@ -18,7 +18,11 @@ mount_kindle_system() {
 
   mount -o bind /proc $MNT_PATH/proc
   mount -o bind /sys $MNT_PATH/sys
-  mount -o bind /dev $MNT_PATH/dev
+  #mount -o bind /dev $MNT_PATH/dev
+  
+  mount -n -t devtmpfs dev $MNT_PATH/dev # to make udev happy
+  mkdir -p $MNT_PATH/dev/pts  
+  
   mount -o bind /dev/pts $MNT_PATH/dev/pts
 }
 
@@ -28,20 +32,40 @@ setup_resolv() {
 }
 
 unmount_kindle_system() {
-  umount $MNT_PATH/sys/kernel/debug/tracing
-  umount $MNT_PATH/sys/kernel/debug
-  umount $MNT_PATH/sys/kernel/config
-  umount $MNT_PATH/sys/fs/fuse/connections
-  umount $MNT_PATH/sys/fs/selinux
   umount $MNT_PATH/sys/fs/pstore
+  sleep 1
+  umount $MNT_PATH/sys/fs/selinux
+  sleep 1
+  umount $MNT_PATH/sys/fs/fuse/connections
+  sleep 1
+  umount $MNT_PATH/sys/kernel/config
+  sleep 1
+  umount $MNT_PATH/sys/kernel/debug/tracing
+  sleep 1
+  umount $MNT_PATH/sys/kernel/debug
+  sleep 1
   umount $MNT_PATH/dev/shm
-  
-  umount $MNT_PATH/dev/pts/ 
-  umount $MNT_PATH/dev 
-  umount $MNT_PATH/sys 
+  sleep 1
+
+  umount $MNT_PATH/dev/pts
+  sleep 1
+  umount $MNT_PATH/dev
+  sleep 1
+  umount $MNT_PATH/sys
+  sleep 1
   umount $MNT_PATH/proc
+  sleep 1
+
+  umount $MNT_PATH/run
+  sleep 1
+  umount $MNT_PATH/var/log
+  sleep 1
+  umount $MNT_PATH/var/cache
+  sleep 1
 
   umount $MNT_PATH/tmp
+  sleep 1
+  sync
 }
 
 unmount_alpine_mount() {
@@ -55,9 +79,11 @@ _mount() {
   mount_fs
   mount_kindle_system
   setup_resolv
+  chroot $MNT_PATH /sbin/openrc sysinit
 }
 
 _unmount() {
+  chroot $MNT_PATH /sbin/openrc shutdown
   kill -9 $(lsof -t +D $MNT_PATH)
   unmount_kindle_system
   unmount_alpine_mount
