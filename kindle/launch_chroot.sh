@@ -1,6 +1,20 @@
 #!/bin/sh
 MNT_PATH="/tmp/alpine"
 
+kindle_services(){
+  action="$1"
+  services="statusbar framework cmd webreader otaupd otav3 ttsorchestrator lab126_gui x todo btmanagerd acsbtfd playermgr appmgrd dpmd rcm demd printklogs syslog iohwlogs playermgr_limit wifis wifid"
+
+  # reverse services order when starting
+  if [ "$action" = "start" ]; then
+    services=$(echo $services | tr ' ' '\n' | tac | tr '\n' ' ')
+  fi
+
+  for service in $services; do
+    initctl "$action" "$service" 2>&1
+  done
+}
+
 create_mountpoint() {
   mkdir -p $MNT_PATH
 }
@@ -28,7 +42,7 @@ mount_kindle_system() {
 
 setup_resolv() {
   cp -f /etc/resolv.conf $MNT_PATH/etc/resolv.conf
-  cp -f /etc/network/interfaces	$MNT_PATH/etc/network/interfaces
+  # cp -f /etc/network/interfaces	$MNT_PATH/etc/network/interfaces
 }
 
 unmount_kindle_system() {
@@ -75,6 +89,7 @@ unmount_alpine_mount() {
 }
 
 _mount() {
+  kindle_services stop
   create_mountpoint
   mount_fs
   mount_kindle_system
@@ -87,6 +102,7 @@ _unmount() {
   kill -9 $(lsof -t +D $MNT_PATH)
   unmount_kindle_system
   unmount_alpine_mount
+  kindle_services start
 }
 
 case $1 in
