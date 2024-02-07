@@ -102,15 +102,16 @@ _unmount() {
   kill -9 $(lsof -t +D $MNT_PATH)
   unmount_kindle_system
   unmount_alpine_mount
-  kindle_services start
+  # kindle_services start
+  reboot
 }
 
 case $1 in
   start)
-    _mount
+    _mount &
     ;;
   stop)
-    _unmount
+    _unmount &
     ;;
   enter)
     chroot $MNT_PATH /bin/ash
