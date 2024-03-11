@@ -2,7 +2,7 @@
 
 CDN_REPO="http://dl-cdn.alpinelinux.org/alpine"
 #REPO="http://localhost/alpine"
-VERSION="v3.13"
+VERSION="v3.19"
 REPO=$CDN_REPO
 OUTPUT_DIR=$( pwd )/out
 IMAGE_NAME="alpine"
@@ -73,6 +73,7 @@ mount_devices() {
   mount -o bind /dev/pts $MNT_DIR/dev/pts
   mount -o bind /proc $MNT_DIR/proc
   mount -o bind /sys $MNT_DIR/sys
+  mount -t tmpfs tmp $MNT_DIR/tmp
 }
 
 bootstrap_alpine() {
@@ -88,13 +89,13 @@ prepare_chroot() {
   mkdir -p "$MNT_DIR/etc/apk"
   echo -e "$REPO/$VERSION/main/\n$REPO/$VERSION/community/" > "$MNT_DIR/etc/apk/repositories"
   cp /etc/resolv.conf $MNT_DIR/etc/resolv.conf
-  cp /usr/bin/qemu-arm-static $MNT_DIR/usr/bin/
+  cp /usr/bin/qemu-arm-static $MNT_DIR/tmp/
   cp provision/default.sh $MNT_DIR/tmp/default.sh
   chmod +x $MNT_DIR/tmp/default.sh
 }
 
 setup_chroot() {
-  chroot $MNT_DIR qemu-arm-static /bin/sh -C /tmp/default.sh /dev/null 2>/dev/null
+  chroot $MNT_DIR /tmp/qemu-arm-static /bin/sh -C /tmp/default.sh /dev/null 2>/dev/null
   echo -e "$CDN_REPO/$VERSION/main/\n$CDN_REPO/$VERSION/community/" > "$MNT_DIR/etc/apk/repositories"
 }
 
