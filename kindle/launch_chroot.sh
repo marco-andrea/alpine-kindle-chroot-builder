@@ -3,7 +3,8 @@ MNT_PATH="/tmp/alpine"
 
 kindle_services(){
   action="$1"
-  services="statusbar framework cmd webreader otaupd otav3 ttsorchestrator lab126_gui x todo btmanagerd acsbtfd playermgr appmgrd dpmd rcm demd printklogs syslog iohwlogs playermgr_limit wifis wifid"
+  #services="statusbar framework cmd webreader otaupd otav3 ttsorchestrator lab126_gui x todo btmanagerd acsbtfd playermgr appmgrd dpmd rcm demd printklogs syslog iohwlogs playermgr_limit wifis wifid"
+  services="x"
 
   # reverse services order when starting
   if [ "$action" = "start" ]; then
@@ -23,26 +24,26 @@ mount_fs() {
 }
 
 mount_kindle_system() {
-  mount -o mode=1777,nosuid,nodev -t tmpfs tmp $MNT_PATH/tmp
+  mount -v -o mode=1777,nosuid,nodev -t tmpfs tmp $MNT_PATH/tmp
   #mount -o mode=0755,nosuid,nodev -t tmpfs run $MNT_PATH/run
 
-  mount -o bind $MNT_PATH/tmp $MNT_PATH/var/cache
-  mount -o bind $MNT_PATH/tmp $MNT_PATH/var/log
-  mount -o bind $MNT_PATH/tmp $MNT_PATH/run
+  mount -v -o bind $MNT_PATH/tmp $MNT_PATH/var/cache
+  mount -v -o bind $MNT_PATH/tmp $MNT_PATH/var/log
+  mount -v -o bind $MNT_PATH/tmp $MNT_PATH/run
 
-  mount -o bind /proc $MNT_PATH/proc
-  mount -o bind /sys $MNT_PATH/sys
-  #mount -o bind /dev $MNT_PATH/dev
-  
-  mount -n -t devtmpfs dev $MNT_PATH/dev # to make udev happy
-  mkdir -p $MNT_PATH/dev/pts  
-  
-  mount -o bind /dev/pts $MNT_PATH/dev/pts
+  mount -v -o bind /proc $MNT_PATH/proc
+  mount -v -o bind /sys $MNT_PATH/sys
+
+  mount -v -n -t devtmpfs dev $MNT_PATH/dev # to make udev happy
+  mkdir -p $MNT_PATH/dev/pts
+  mount -v -o bind /dev/pts $MNT_PATH/dev/pts
+
+  mkdir -p $MNT_PATH/dev/shm
+  mount -v -o bind /dev/shm   $MNT_PATH/dev/shm  
 }
 
 setup_resolv() {
   cp -f /etc/resolv.conf $MNT_PATH/etc/resolv.conf
-  # cp -f /etc/network/interfaces	$MNT_PATH/etc/network/interfaces
 }
 
 unmount_kindle_system() {
@@ -102,8 +103,8 @@ _unmount() {
   kill -9 $(lsof -t +D $MNT_PATH)
   unmount_kindle_system
   unmount_alpine_mount
-  # kindle_services start
-  reboot
+  kindle_services start
+  # or reboot
 }
 
 case $1 in
